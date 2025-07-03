@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(layout="wide")
-st.title("🚚 Live Whiteboard Dashboard")
+st.title("🚚 Prattville Mill Railcar")
 
 # Initialize session state for each column
 for key in ["enroute", "yard", "mill"]:
@@ -12,7 +12,7 @@ for key in ["enroute", "yard", "mill"]:
 st.markdown("### ➕ Add New Entry")
 
 with st.form("new_entry_form"):
-    new_note = st.text_input("Enter a note:")
+    new_note = st.text_input("Enter a Railcar ID:")
     category = st.selectbox("Select location:", ["Enroute", "Holding Yard", "Mill Loading/Unloading"])
     submitted = st.form_submit_button("Add")
 
