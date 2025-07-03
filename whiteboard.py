@@ -15,7 +15,7 @@ with st.form("new_entry_form"):
     railcar_id = st.text_input("Enter Railcar ID:")
     supplier = st.text_input("Enter Supplier:")
     carrier = st.text_input("Enter Carrier:")
-    category = st.selectbox("Select location:", ["Enroute", "Holding Yard", "Mill Loading/Unloading"])
+    category = st.selectbox("Select location:", ["Enroute", "Holding Yard", "In Mill"])
     submitted = st.form_submit_button("Add")
 
     if submitted and railcar_id:
