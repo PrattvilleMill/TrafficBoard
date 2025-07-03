@@ -28,7 +28,7 @@ with st.form("new_entry_form"):
             st.session_state.enroute.append(entry)
         elif category == "Holding Yard":
             st.session_state.yard.append(entry)
-        elif category == "Mill Loading/Unloading":
+        elif category == "In Mill":
             st.session_state.mill.append(entry)
 
 # Display in 3 columns
