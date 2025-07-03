@@ -3,8 +3,8 @@ import streamlit as st
 st.set_page_config(layout="wide")
 st.title("🚚 Prattville Mill Railcar Dashboard")
 
-# Section names for tabs 1 & 2
-sections = [
+# Section names for tabs 1 & 2 (Enroute, Holding Yard)
+enroute_sections = [
     "Caustic",
     "Soap",
     "Tall Oil",
@@ -13,16 +13,39 @@ sections = [
     "Sodium Hydrosulfide",
     "Turpentine"
 ]
+yard_sections = enroute_sections + ["Empty Tanks"]
 
-# Temporary session state reset for migration from old list structure (REMOVE after one run if upgrading)
-for k in ["enroute", "yard"]:
+# Section names for In Mill
+mill_sections = [
+    "1. Acid",
+    "1A. Acid",
+    "2. Soap",
+    "2A. Tall Oil",
+    "2B. Tall Oil",
+    "3. PowerHouse",
+    "4A. Turpentine",
+    "4B. Soap",
+    "6A. NaHS",
+    "6B. Caustic",
+    "7. Caustic",
+    "7A. Caustic",
+    "7B. Caustic",
+    "8. PaperMill Acid",
+    "9W. Waste"
+]
+
+# Reset session state if upgrading (REMOVE after one run if upgrading)
+for k, sections in zip(["enroute", "yard", "mill"], [enroute_sections, yard_sections, mill_sections]):
     if k in st.session_state and not isinstance(st.session_state[k], dict):
         del st.session_state[k]
 
 # Initialize session state for each category and section
-for key in ["enroute", "yard", "mill"]:
-    if key not in st.session_state:
-        st.session_state[key] = {section: [] for section in sections} if key != "mill" else []
+if "enroute" not in st.session_state:
+    st.session_state["enroute"] = {section: [] for section in enroute_sections}
+if "yard" not in st.session_state:
+    st.session_state["yard"] = {section: [] for section in yard_sections}
+if "mill" not in st.session_state:
+    st.session_state["mill"] = {section: [] for section in mill_sections}
 
 # Input form
 st.markdown("### ➕ Add New Railcar Entry")
@@ -32,10 +55,17 @@ with st.form("new_entry_form"):
     supplier = st.text_input("Enter Supplier:")
     carrier = st.text_input("Enter Carrier:")
     category = st.selectbox("Select location:", ["Enroute", "Holding Yard", "In Mill"])
-    section = st.selectbox("Select section:", sections) if category in ["Enroute", "Holding Yard"] else None
+    if category == "Enroute":
+        section = st.selectbox("Select section:", enroute_sections)
+    elif category == "Holding Yard":
+        section = st.selectbox("Select section:", yard_sections)
+    elif category == "In Mill":
+        section = st.selectbox("Select section:", mill_sections)
+    else:
+        section = None
     submitted = st.form_submit_button("Add")
 
-    if submitted and railcar_id:
+    if submitted and railcar_id and section:
         entry = {
             "railcar_id": railcar_id.strip(),
             "supplier": supplier.strip(),
@@ -46,9 +76,8 @@ with st.form("new_entry_form"):
         elif category == "Holding Yard":
             st.session_state.yard[section].append(entry)
         elif category == "In Mill":
-            st.session_state.mill.append(entry)
+            st.session_state.mill[section].append(entry)
 
-# Tabs for the 3 categories
 tab1, tab2, tab3 = st.tabs(["🟦 Enroute", "🟨 Holding Yard", "🟩 In Mill"])
 
 def display_entries(entries, color):
@@ -79,18 +108,17 @@ def display_entries(entries, color):
                 unsafe_allow_html=True
             )
 
-# Tab 1: Enroute with sections
 with tab1:
-    for section in sections:
+    for section in enroute_sections:
         st.subheader(section)
         display_entries(st.session_state.enroute[section], "success")
 
-# Tab 2: Holding Yard with sections
 with tab2:
-    for section in sections:
+    for section in yard_sections:
         st.subheader(section)
         display_entries(st.session_state.yard[section], "warning")
 
-# Tab 3: In Mill (no sub-sections)
 with tab3:
-    display_entries(st.session_state.mill, "info")
+    for section in mill_sections:
+        st.subheader(section)
+        display_entries(st.session_state.mill[section], "info")
