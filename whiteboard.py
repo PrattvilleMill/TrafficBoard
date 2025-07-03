@@ -31,23 +31,44 @@ with st.form("new_entry_form"):
         elif category == "Mill Loading/Unloading":
             st.session_state.mill.append(entry)
 
-# Display in 3 columns
-col1, col2, col3 = st.columns(3)
+# Function to handle moving entries
+def move_entry(source_list, entry_index, target_list_name):
+    entry = source_list.pop(entry_index)
+    st.session_state[target_list_name].append(entry)
 
-def display_entries(entries, color_func):
-    for entry in entries:
+# Function to display entries with move options
+def display_entries(entries, list_name):
+    for i, entry in enumerate(entries):
         with st.container():
-            color_func(f"🚆 {entry['railcar_id']}")
+            st.markdown(f"🚆 **{entry['railcar_id']}**")
             st.markdown(f"**Supplier**: {entry['supplier']}  \n**Carrier**: {entry['carrier']}")
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                target = st.selectbox(
+                    "Move to:", 
+                    ["-- Select --", "Enroute", "Holding Yard", "Mill Loading/Unloading"], 
+                    key=f"{list_name}_{i}_move"
+                )
+            with col2:
+                if st.button("Move", key=f"{list_name}_{i}_btn") and target != "-- Select --" and target != list_name:
+                    move_entry(
+                        st.session_state[list_name],
+                        i,
+                        {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target]
+                    )
+                    st.experimental_rerun()
+
+# Columns for each section
+col1, col2, col3 = st.columns(3)
 
 with col1:
     st.header("🟦 Enroute")
-    display_entries(st.session_state.enroute, st.success)
+    display_entries(st.session_state.enroute, "enroute")
 
 with col2:
     st.header("🟨 Holding Yard")
-    display_entries(st.session_state.yard, st.warning)
+    display_entries(st.session_state.yard, "yard")
 
 with col3:
     st.header("🟩 Mill Loading/Unloading")
-    display_entries(st.session_state.mill, st.info)
+    display_entries(st.session_state.mill, "mill")
