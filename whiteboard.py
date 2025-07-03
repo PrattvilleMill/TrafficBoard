@@ -51,12 +51,24 @@ with st.form("new_entry_form"):
 # Tabs for the 3 categories
 tab1, tab2, tab3 = st.tabs(["🟦 Enroute", "🟨 Holding Yard", "🟩 In Mill"])
 
-def display_entries(entries, color_func):
+def display_entries(entries, color):
+    color_map = {
+        "success": "#dff0d8",
+        "warning": "#fcf8e3",
+        "info":    "#d9edf7"
+    }
+    border_map = {
+        "success": "#3c763d",
+        "warning": "#8a6d3b",
+        "info":    "#31708f"
+    }
+    bg_color = color_map[color]
+    border_color = border_map[color]
     for entry in entries:
         with st.container():
-            color_func(
+            st.markdown(
                 f"""
-                <div>
+                <div style='background-color:{bg_color};border-left:8px solid {border_color};padding:1em 1em 0.8em 1em;border-radius:6px; margin-bottom: 0.5em;'>
                     <span style='font-size:1.2em; font-weight:bold;'>🚆 {entry['railcar_id']}</span><br>
                     <span style='font-size:0.9em; color: #444;'>
                         Supplier: {entry['supplier']}<br>
@@ -71,14 +83,14 @@ def display_entries(entries, color_func):
 with tab1:
     for section in sections:
         st.subheader(section)
-        display_entries(st.session_state.enroute[section], st.success)
+        display_entries(st.session_state.enroute[section], "success")
 
 # Tab 2: Holding Yard with sections
 with tab2:
     for section in sections:
         st.subheader(section)
-        display_entries(st.session_state.yard[section], st.warning)
+        display_entries(st.session_state.yard[section], "warning")
 
 # Tab 3: In Mill (no sub-sections)
 with tab3:
-    display_entries(st.session_state.mill, st.info)
+    display_entries(st.session_state.mill, "info")
