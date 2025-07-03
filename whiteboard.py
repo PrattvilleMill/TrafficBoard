@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(layout="wide")
 st.title("🚚 Prattville Mill Railcar Dashboard")
 
-# Section names for tabs 1 & 2 (Enroute, Holding Yard)
+# Section names for tabs
 enroute_sections = [
     "Caustic",
     "Soap",
@@ -14,8 +14,6 @@ enroute_sections = [
     "Turpentine"
 ]
 yard_sections = enroute_sections + ["Empty Tanks"]
-
-# Section names for In Mill
 mill_sections = [
     "1. Acid",
     "1A. Acid",
@@ -34,7 +32,13 @@ mill_sections = [
     "9W. Waste"
 ]
 
-# Reset session state if upgrading (REMOVE after one run if upgrading)
+section_choices = {
+    "Enroute": enroute_sections,
+    "Holding Yard": yard_sections,
+    "In Mill": mill_sections
+}
+
+# Session state reset for migration (REMOVE after one run if upgrading)
 for k, sections in zip(["enroute", "yard", "mill"], [enroute_sections, yard_sections, mill_sections]):
     if k in st.session_state and not isinstance(st.session_state[k], dict):
         del st.session_state[k]
@@ -55,14 +59,7 @@ with st.form("new_entry_form"):
     supplier = st.text_input("Enter Supplier:")
     carrier = st.text_input("Enter Carrier:")
     category = st.selectbox("Select location:", ["Enroute", "Holding Yard", "In Mill"])
-    if category == "Enroute":
-        section = st.selectbox("Select section:", enroute_sections)
-    elif category == "Holding Yard":
-        section = st.selectbox("Select section:", yard_sections)
-    elif category == "In Mill":
-        section = st.selectbox("Select section:", mill_sections)
-    else:
-        section = None
+    section = st.selectbox("Select section:", section_choices[category])
     submitted = st.form_submit_button("Add")
 
     if submitted and railcar_id and section:
@@ -80,7 +77,7 @@ with st.form("new_entry_form"):
 
 tab1, tab2, tab3 = st.tabs(["🟦 Enroute", "🟨 Holding Yard", "🟩 In Mill"])
 
-def display_entries(entries, color):
+def display_entries(entries, color, current_tab, current_section):
     color_map = {
         "success": "#dff0d8",
         "warning": "#fcf8e3",
@@ -93,7 +90,12 @@ def display_entries(entries, color):
     }
     bg_color = color_map[color]
     border_color = border_map[color]
-    for entry in entries:
+    other_tabs = {
+        "enroute": ("Enroute", enroute_sections),
+        "yard": ("Holding Yard", yard_sections),
+        "mill": ("In Mill", mill_sections)
+    }
+    for idx, entry in enumerate(entries):
         with st.container():
             st.markdown(
                 f"""
@@ -107,18 +109,42 @@ def display_entries(entries, color):
                 """,
                 unsafe_allow_html=True
             )
+            with st.expander("Move this entry"):
+                # Select destination tab
+                dest_tab = st.selectbox(
+                    "Destination tab",
+                    ["Enroute", "Holding Yard", "In Mill"],
+                    key=f"move_tab_{current_tab}_{current_section}_{idx}"
+                )
+                # Select section according to chosen tab
+                dest_section = st.selectbox(
+                    "Destination section",
+                    section_choices[dest_tab],
+                    key=f"move_sec_{current_tab}_{current_section}_{idx}"
+                )
+                if st.button("Confirm Move", key=f"confirm_move_{current_tab}_{current_section}_{idx}"):
+                    # Remove from current
+                    entries.pop(idx)
+                    # Add to new
+                    if dest_tab == "Enroute":
+                        st.session_state.enroute[dest_section].append(entry)
+                    elif dest_tab == "Holding Yard":
+                        st.session_state.yard[dest_section].append(entry)
+                    elif dest_tab == "In Mill":
+                        st.session_state.mill[dest_section].append(entry)
+                    st.experimental_rerun()
 
 with tab1:
     for section in enroute_sections:
         st.subheader(section)
-        display_entries(st.session_state.enroute[section], "success")
+        display_entries(st.session_state.enroute[section], "success", "enroute", section)
 
 with tab2:
     for section in yard_sections:
         st.subheader(section)
-        display_entries(st.session_state.yard[section], "warning")
+        display_entries(st.session_state.yard[section], "warning", "yard", section)
 
 with tab3:
     for section in mill_sections:
         st.subheader(section)
-        display_entries(st.session_state.mill[section], "info")
+        display_entries(st.session_state.mill[section], "info", "mill", section)
