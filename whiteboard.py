@@ -14,6 +14,11 @@ sections = [
     "Turpentine"
 ]
 
+# Temporary session state reset for migration from old list structure (REMOVE after one run if upgrading)
+for k in ["enroute", "yard"]:
+    if k in st.session_state and not isinstance(st.session_state[k], dict):
+        del st.session_state[k]
+
 # Initialize session state for each category and section
 for key in ["enroute", "yard", "mill"]:
     if key not in st.session_state:
