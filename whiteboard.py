@@ -3,24 +3,22 @@ import streamlit as st
 st.set_page_config(layout="wide")
 st.title("🚚 Prattville Mill Railcar Dashboard")
 
-# Initialize session state for each column
+# --- Safe rerun trigger setup ---
+if "move_request" in st.session_state:
+    # Move request was triggered last rerun
+    move = st.session_state.move_request
+    source_list = st.session_state[move["from"]]
+    entry = source_list.pop(move["index"])
+    st.session_state[move["to"]].append(entry)
+    del st.session_state.move_request  # Clear flag
+    st.experimental_rerun()  # Final safe rerun after state is updated
+
+# --- Initialize session state lists ---
 for key in ["enroute", "yard", "mill"]:
     if key not in st.session_state:
         st.session_state[key] = []
 
-# Flag for safely rerunning move after render
-if "pending_move" not in st.session_state:
-    st.session_state.pending_move = None
-
-# If a move is pending, process it first
-if st.session_state.pending_move:
-    from_list, index, to_list = st.session_state.pending_move
-    entry = st.session_state[from_list].pop(index)
-    st.session_state[to_list].append(entry)
-    st.session_state.pending_move = None
-    st.experimental_rerun()
-
-# Input form
+# --- Entry form ---
 st.markdown("### ➕ Add New Railcar Entry")
 
 with st.form("new_entry_form"):
@@ -43,13 +41,12 @@ with st.form("new_entry_form"):
         elif category == "Mill Loading/Unloading":
             st.session_state.mill.append(entry)
 
-# Function to display entries with move dropdown
+# --- Entry display with move logic ---
 def display_entries(entries, list_name):
     for i, entry in enumerate(entries):
         with st.container():
             st.markdown(f"🚆 **{entry['railcar_id']}**")
             st.markdown(f"**Supplier**: {entry['supplier']}  \n**Carrier**: {entry['carrier']}")
-
             col1, col2 = st.columns([3, 1])
             with col1:
                 target = st.selectbox(
@@ -59,11 +56,15 @@ def display_entries(entries, list_name):
                 )
             with col2:
                 if st.button("Move", key=f"{list_name}_{i}_btn") and target != "-- Select --" and target != list_name:
-                    target_key = {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target]
-                    st.session_state.pending_move = (list_name, i, target_key)
+                    # Set a move request in session state
+                    st.session_state.move_request = {
+                        "from": list_name,
+                        "to": {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target],
+                        "index": i
+                    }
                     st.experimental_rerun()
 
-# Show columns
+# --- Layout ---
 col1, col2, col3 = st.columns(3)
 
 with col1:
