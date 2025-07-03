@@ -8,6 +8,18 @@ for key in ["enroute", "yard", "mill"]:
     if key not in st.session_state:
         st.session_state[key] = []
 
+# Flag for safely rerunning move after render
+if "pending_move" not in st.session_state:
+    st.session_state.pending_move = None
+
+# If a move is pending, process it first
+if st.session_state.pending_move:
+    from_list, index, to_list = st.session_state.pending_move
+    entry = st.session_state[from_list].pop(index)
+    st.session_state[to_list].append(entry)
+    st.session_state.pending_move = None
+    st.experimental_rerun()
+
 # Input form
 st.markdown("### ➕ Add New Railcar Entry")
 
@@ -31,15 +43,8 @@ with st.form("new_entry_form"):
         elif category == "Mill Loading/Unloading":
             st.session_state.mill.append(entry)
 
-# Function to handle moving entries
-def move_entry(source_list, entry_index, target_list_name):
-    entry = source_list.pop(entry_index)
-    st.session_state[target_list_name].append(entry)
-
-# Function to display entries with safe move logic
+# Function to display entries with move dropdown
 def display_entries(entries, list_name):
-    moved = None  # Track if a move is requested
-
     for i, entry in enumerate(entries):
         with st.container():
             st.markdown(f"🚆 **{entry['railcar_id']}**")
@@ -54,15 +59,11 @@ def display_entries(entries, list_name):
                 )
             with col2:
                 if st.button("Move", key=f"{list_name}_{i}_btn") and target != "-- Select --" and target != list_name:
-                    moved = (i, {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target])
+                    target_key = {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target]
+                    st.session_state.pending_move = (list_name, i, target_key)
+                    st.experimental_rerun()
 
-    # Only rerun after all widgets are rendered
-    if moved:
-        index, target_list_name = moved
-        move_entry(st.session_state[list_name], index, target_list_name)
-        st.experimental_rerun()
-
-# Columns for each section
+# Show columns
 col1, col2, col3 = st.columns(3)
 
 with col1:
