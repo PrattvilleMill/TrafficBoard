@@ -36,28 +36,31 @@ def move_entry(source_list, entry_index, target_list_name):
     entry = source_list.pop(entry_index)
     st.session_state[target_list_name].append(entry)
 
-# Function to display entries with move options
+# Function to display entries with safe move logic
 def display_entries(entries, list_name):
-moved = None
+    moved = None  # Track if a move is requested
+
     for i, entry in enumerate(entries):
         with st.container():
             st.markdown(f"🚆 **{entry['railcar_id']}**")
             st.markdown(f"**Supplier**: {entry['supplier']}  \n**Carrier**: {entry['carrier']}")
+
             col1, col2 = st.columns([3, 1])
             with col1:
                 target = st.selectbox(
-                    "Move to:", 
-                    ["-- Select --", "Enroute", "Holding Yard", "Mill Loading/Unloading"], 
+                    "Move to:",
+                    ["-- Select --", "Enroute", "Holding Yard", "Mill Loading/Unloading"],
                     key=f"{list_name}_{i}_move"
                 )
             with col2:
-               if st.button("Move", key=f"{list_name}_{i}_btn") and target != "-- Select --" and target != list_name:
-                moved = (i, {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target])
-if moved:
-    index, target_list_name = moved
-    move_entry(st.session_state[list_name], index, target_list_name)
-    st.experimental_rerun()
+                if st.button("Move", key=f"{list_name}_{i}_btn") and target != "-- Select --" and target != list_name:
+                    moved = (i, {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target])
 
+    # Only rerun after all widgets are rendered
+    if moved:
+        index, target_list_name = moved
+        move_entry(st.session_state[list_name], index, target_list_name)
+        st.experimental_rerun()
 
 # Columns for each section
 col1, col2, col3 = st.columns(3)
