@@ -49,8 +49,18 @@ tab1, tab2, tab3 = st.tabs(["🟦 Enroute", "🟨 Holding Yard", "🟩 In Mill"]
 def display_entries(entries, color_func):
     for entry in entries:
         with st.container():
-            color_func(f"🚆 {entry['railcar_id']}")
-            st.markdown(f"**Supplier**: {entry['supplier']}  \n**Carrier**: {entry['carrier']}")
+            color_func(
+                f"""
+                <div>
+                    <span style='font-size:1.2em; font-weight:bold;'>🚆 {entry['railcar_id']}</span><br>
+                    <span style='font-size:0.9em; color: #444;'>
+                        Supplier: {entry['supplier']}<br>
+                        Carrier: {entry['carrier']}
+                    </span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 # Tab 1: Enroute with sections
 with tab1:
