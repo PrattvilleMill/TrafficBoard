@@ -38,6 +38,7 @@ def move_entry(source_list, entry_index, target_list_name):
 
 # Function to display entries with move options
 def display_entries(entries, list_name):
+moved = None
     for i, entry in enumerate(entries):
         with st.container():
             st.markdown(f"🚆 **{entry['railcar_id']}**")
@@ -50,13 +51,13 @@ def display_entries(entries, list_name):
                     key=f"{list_name}_{i}_move"
                 )
             with col2:
-                if st.button("Move", key=f"{list_name}_{i}_btn") and target != "-- Select --" and target != list_name:
-                    move_entry(
-                        st.session_state[list_name],
-                        i,
-                        {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target]
-                    )
-                    st.experimental_rerun()
+               if st.button("Move", key=f"{list_name}_{i}_btn") and target != "-- Select --" and target != list_name:
+                moved = (i, {"Enroute": "enroute", "Holding Yard": "yard", "Mill Loading/Unloading": "mill"}[target])
+if moved:
+    index, target_list_name = moved
+    move_entry(st.session_state[list_name], index, target_list_name)
+    st.experimental_rerun()
+
 
 # Columns for each section
 col1, col2, col3 = st.columns(3)
