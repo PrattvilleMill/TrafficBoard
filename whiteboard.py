@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(layout="wide")
 st.title("🚚 Prattville Mill Railcar Dashboard")
 
-# Section names for tabs
+# Section names for each tab
 enroute_sections = [
     "Caustic",
     "Soap",
@@ -90,11 +90,6 @@ def display_entries(entries, color, current_tab, current_section):
     }
     bg_color = color_map[color]
     border_color = border_map[color]
-    other_tabs = {
-        "enroute": ("Enroute", enroute_sections),
-        "yard": ("Holding Yard", yard_sections),
-        "mill": ("In Mill", mill_sections)
-    }
     for idx, entry in enumerate(entries):
         with st.container():
             st.markdown(
@@ -132,7 +127,7 @@ def display_entries(entries, color, current_tab, current_section):
                         st.session_state.yard[dest_section].append(entry)
                     elif dest_tab == "In Mill":
                         st.session_state.mill[dest_section].append(entry)
-                    st.experimental_rerun()
+                    st.rerun()
 
 with tab1:
     for section in enroute_sections:
