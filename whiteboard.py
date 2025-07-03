@@ -49,5 +49,5 @@ with col2:
     display_entries(st.session_state.yard, st.warning)
 
 with col3:
-    st.header("🟩 Mill Loading/Unloading")
+    st.header("🟩 In Mill")
     display_entries(st.session_state.mill, st.info)
